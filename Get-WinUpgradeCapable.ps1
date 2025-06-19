@@ -108,12 +108,16 @@ function WinUpgradeCapableCheck {
         exit 1
     } else { Write-Output "Could not confirm UEFI firmware."}
 
+
+    # Windows cannot check this if TPM is disabled in BIOS
     if ( $secureBootStatus -eq $True ) {
         Write-Host "Confirmed Secure Boot is enabled."
     } elseif ( $secureBootStatus -eq $False ) {
         Write-Host "Secure boot is not enabled."
+        exit 1
     } else {
         Write-Host "Secure boot could not be checked, verify UEFI."
+        exit -1
     }
 }
 
