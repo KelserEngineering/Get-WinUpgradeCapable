@@ -48,8 +48,8 @@ function CpuCheck {
     $cpu = (Get-CimInstance Win32_Processor)
     $clockSpeed = ($cpu.MaxClockSpeed -gt $MinClockSpeedMHz)
     $threadCount = ($cpu.ThreadCount -or $cpu.NumberOfCores -ge $MinLogicalCores)
-    $addresSwidth = ($cpu.AddressWidth -eq $RequiredAddressWidth)
-    $compatible = $clockspeed -and $threadcount -and $addresswidth
+    $addressWidth = ($cpu.AddressWidth -eq $RequiredAddressWidth)
+    $compatible = $clockSpeed -and $threadCount -and $addressWidth
 
     if ( $compatible ) {
         return 0
