@@ -24,20 +24,24 @@ function TpmCheck {
 
 function MemoryCheck {
     $totalMemory = ((Get-Ciminstance Win32_OperatingSystem).TotalVirtualMemorySize)/1MB
+
     if ( $totalMemory -ge $MinMemoryGB ) {
         return 0
     } elseif ( $totalMemory -lt $MinMemoryGB ) {
         return 1
     } else { return -1 }
+
 }
 
 function OsDiskCheck {
     $freeSpace = ((Get-CimInstance Win32_LogicaLdisk).FreeSpace)/1GB
+
     if ( $freeSpace -ge $MinOSDiskSizeGB ) {
         return 0
     } elseif ( $freeSpace -lt $MinOSDiskSizeGB ) {
         return 1
     } else { return -1 }
+
 }
 
 function CpuCheck {
@@ -95,6 +99,12 @@ function WinUpgradeCapableCheck {
         Write-Host "CPU not compatible for Windows 11 upgrade."
     } else { Write-Output "CPU check succeeded." }
 
+    if ( $env:firmware_type -eq "UEFI" ) {
+        Write-Host "Confirmed firmware is UEFI."
+    } elseif ( $env:firmware_type -eq "Legacy" ) {
+        Write-Host "Computer is not on UEFI firmware mode."
+        exit 1
+    } else { Write-Output "Could not confirm UEFI firmware."}
 }
 
 WinUpgradeCapableCheck
