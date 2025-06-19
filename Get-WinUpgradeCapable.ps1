@@ -9,15 +9,12 @@ $MinLogicalCores = 2
 $RequiredAddressWidth = 64
 
 function TpmCheck {
-
-    try {
-        $tpm = Get-Tpm
-    } catch {
-        return -1
-    }
+    $tpm = Get-Tpm
 
     if ( $tpm.TpmPresent -and $tpm.TpmReady ) {
         return 0
+    } elseif ( $null -ne $tpm ) {
+        return 2
     } else { return 1 }
 
 }
@@ -71,12 +68,13 @@ function WinUpgradeCapableCheck {
     $memoryStatus = MemoryCheck
     $osDiskStatus = OsDiskCheck
     $cpuStatus = CpuCheck
+    $secureBootStatus = Confirm-SecureBootUEFI
 
     if ( $tpmStatus -eq -1 ) {
         Write-Host "An error has occurred running the TPM Check."
         exit -1
     } elseif ( $tpmStatus -gt 0 ) {
-        Write-Host "TPM not capable for Windows 11 upgrade."
+        Write-Host "TPM not capable for Windows 11 upgrade, disabled in BIOS, or not present."
         exit 1
     } else { Write-Output "TPM check succeeded." }
 
@@ -109,6 +107,14 @@ function WinUpgradeCapableCheck {
         Write-Host "Computer is not on UEFI firmware mode."
         exit 1
     } else { Write-Output "Could not confirm UEFI firmware."}
+
+    if ( $secureBootStatus -eq $True ) {
+        Write-Host "Confirmed Secure Boot is enabled."
+    } elseif ( $secureBootStatus -eq $False ) {
+        Write-Host "Secure boot is not enabled."
+    } else {
+        Write-Host "Secure boot could not be checked, verify UEFI."
+    }
 }
 
 WinUpgradeCapableCheck
