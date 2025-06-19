@@ -67,35 +67,39 @@ function CpuCheck {
 }
 
 function WinUpgradeCapableCheck {
+    $tpmStatus = TpmCheck
+    $memoryStatus = MemoryCheck
+    $osDiskStatus = OsDiskCheck
+    $cpuStatus = CpuCheck
 
-    if ( (TpmCheck) -eq -1 ) {
+    if ( $tpmStatus -eq -1 ) {
         Write-Host "An error has occurred running the TPM Check."
         exit -1
-    } elseif ( (TpmCheck) -gt 0 ) {
+    } elseif ( $tpmStatus -gt 0 ) {
         Write-Host "TPM not capable for Windows 11 upgrade."
         exit 1
     } else { Write-Output "TPM check succeeded." }
 
-    if ( (MemoryCheck) -eq -1 ) {
+    if ( $memoryStatus -eq -1 ) {
         Write-Host "An error has occurred running the memory check."
         exit -1
-    } elseif ( (MemoryCheck) -gt 0 ) {
+    } elseif ( $memoryStatus -gt 0 ) {
         Write-Host "Not enough memory for Windows 11 upgrade."
         exit 1
     } else { Write-Output "Memory check succeeded." }
 
-    if ( (OsDiskCheck) -eq -1 ) {
+    if ( $osDiskStatus -eq -1 ) {
         Write-Host "An error has occurred running the OS disk check."
         exit -1
-    } elseif ( (OsDiskCheck) -gt 0 ) {
+    } elseif ( $osDiskStatus -gt 0 ) {
         Write-Host "Not enough space on OS disk for Windows 11 upgrade."
         exit 1
     } else { Write-Output "OS disk check succeeded." }
 
-    if ( (CpuCheck) -eq -1 ) {
+    if ( $cpuStatus -eq -1 ) {
         Write-Host "An error has occurred running the CPU check."
         exit -1
-    } elseif ( (CpuCheck) -gt 0 ) {
+    } elseif ( $cpuStatus -gt 0 ) {
         Write-Host "CPU not compatible for Windows 11 upgrade."
     } else { Write-Output "CPU check succeeded." }
 
