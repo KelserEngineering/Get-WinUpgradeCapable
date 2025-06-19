@@ -46,20 +46,20 @@ function OsDiskCheck {
 
 function CpuCheck {
     $cpu = (Get-CimInstance Win32_Processor)
-    $clockspeed = ($cpu.MaxClockSpeed -gt $MinClockSpeedMHz)
-    $threadcount = ($cpu.ThreadCount -or $cpu.NumberOfCores -ge $MinLogicalCores)
-    $addresswidth = ($cpu.AddressWidth -eq $RequiredAddressWidth)
+    $clockSpeed = ($cpu.MaxClockSpeed -gt $MinClockSpeedMHz)
+    $threadCount = ($cpu.ThreadCount -or $cpu.NumberOfCores -ge $MinLogicalCores)
+    $addresSwidth = ($cpu.AddressWidth -eq $RequiredAddressWidth)
     $compatible = $clockspeed -and $threadcount -and $addresswidth
 
     if ( $compatible ) {
         return 0
-    } elseif ( -Not $clockspeed ) {
+    } elseif ( -Not $clockSpeed ) {
         Write-Output "Clock speed does not meet the requirement for Windows 11 upgrade."
         return 1
-    } elseif ( -Not $threadcount ) {
+    } elseif ( -Not $threadCount ) {
         Write-Output "Not enough CPU cores for Windows 11 upgrade."
         return 1
-    } elseif ( -Not $addresswidth ) {
+    } elseif ( -Not $addressWidth ) {
         Write-Output "Not running 64-bit OS, incompatible with Windows 11 upgrade."
         return 1
     } else { return -1 }
