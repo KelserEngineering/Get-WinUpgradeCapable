@@ -1,8 +1,10 @@
-#Requires -Version 5.1
-#Requires -RunAsAdministrator
 param (
     [switch]$BreakAnyway
 )
+
+#Requires -Version 5.1
+#Requires -RunAsAdministrator
+
 # Windows 11 compatability script (simplified)
 
 $BreakAnyway = $False
