@@ -1,0 +1,1 @@
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/KelserEngineering/Get-WinUpgradeCapable/refs/heads/main/Get-WinUpgradeCapable.ps1'))

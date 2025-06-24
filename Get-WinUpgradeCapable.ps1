@@ -1,5 +1,6 @@
 #Requires -Version 5.1
 #Requires -RunAsAdministrator
+
 # Windows 11 compatability script (simplified)
 
 $MinOSDiskSizeGB = 64
@@ -86,14 +87,6 @@ function WinUpgradeCapableCheck {
         exit 1
     } else { Write-Output "Memory check succeeded." }
 
-    if ( $osDiskStatus -eq -1 ) {
-        Write-Host "An error has occurred running the OS disk check."
-        exit -1
-    } elseif ( $osDiskStatus -gt 0 ) {
-        Write-Host "Not enough space on OS disk for Windows 11 upgrade."
-        exit 1
-    } else { Write-Output "OS disk check succeeded." }
-
     if ( $cpuStatus -eq -1 ) {
         Write-Host "An error has occurred running the CPU check."
         exit -1
@@ -108,7 +101,6 @@ function WinUpgradeCapableCheck {
         exit 1
     } else { Write-Output "Could not confirm UEFI firmware."}
 
-
     # Windows cannot check this if TPM is disabled in BIOS
     if ( $secureBootStatus -eq $True ) {
         Write-Host "Confirmed Secure Boot is enabled."
@@ -119,6 +111,15 @@ function WinUpgradeCapableCheck {
         Write-Host "Secure boot could not be checked, verify UEFI."
         exit -1
     }
+
+    # Check disk last in the case it just needs cleanup
+    if ( $osDiskStatus -eq -1 ) {
+        Write-Host "An error has occurred running the OS disk check."
+        exit -1
+    } elseif ( $osDiskStatus -gt 0 ) {
+        Write-Host "Not enough space on OS disk for Windows 11 upgrade."
+        exit 1
+    } else { Write-Output "OS disk check succeeded." }
 }
 
 WinUpgradeCapableCheck
