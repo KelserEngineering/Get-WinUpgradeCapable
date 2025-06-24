@@ -1,8 +1,11 @@
 #Requires -Version 5.1
 #Requires -RunAsAdministrator
-
+param (
+    [switch]$BreakAnyway
+)
 # Windows 11 compatability script (simplified)
 
+$BreakAnyway = $False
 $MinOSDiskSizeGB = 64
 $MinMemoryGB = 4
 $MinClockSpeedMHz = 1000
@@ -120,6 +123,14 @@ function WinUpgradeCapableCheck {
         Write-Host "Not enough space on OS disk for Windows 11 upgrade."
         exit 1
     } else { Write-Output "OS disk check succeeded." }
+
+    if ( $BreakAnyway -eq $True ) {
+        Write-Host "Script in test mode set to break, terminating with failure result."
+        Write-Host $_
+        exit 1
+    }
+
+    Write-Host "All checks succeeded, Windows Upgrade can commence."
 }
 
 WinUpgradeCapableCheck
