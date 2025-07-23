@@ -37,7 +37,7 @@ function MemoryCheck {
 }
 
 function OsDiskCheck {
-    $freeSpace = ((Get-CimInstance Win32_LogicaLdisk).FreeSpace)/1GB
+    $freeSpace = ((Get-CimInstance Win32_LogicaLdisk | Where-Object -Property DeviceID -EQ 'C:').FreeSpace)/1GB
 
     if ( $freeSpace -ge $MinOSDiskSizeGB ) {
         return 0
