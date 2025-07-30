@@ -104,7 +104,7 @@ function WinUpgradeCapableCheck {
         Write-Host "An error has occurred running the CPU check."
         exit -1
     } elseif ( $cpuStatus -gt 0) {
-        Write-Host "Failed CPU clock speed requirement."
+        Write-Host "Failed CPU requirement."
     } else { Write-Host "CPU requirement satisfied." }
 
     # Firmware check
