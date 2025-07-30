@@ -57,16 +57,16 @@ function CpuCheck {
     if ( $compatible ) {
         return 0
     } elseif ( -Not $clockSpeed ) {
-        Write-Output "Clock speed does not meet the requirement for Windows 11 upgrade."
+        Write-Host "Failed CPU clock speed requirement."
         return 1
     } elseif ( -Not $threadCount ) {
-        Write-Output "Not enough CPU cores for Windows 11 upgrade."
-        return 1
+        Write-Host "Failed CPU thread count requirement."
+        return 2
     } elseif ( -Not $addressWidth ) {
-        Write-Output "Not running 64-bit OS, incompatible with Windows 11 upgrade."
-        return 1
+        Write-Host "Failed CPU Architecture requirement."
+        Write-Host "Is installed Windows 64-bit?"
+        return 3
     } else { return -1 }
-
 }
 
 function WinUpgradeCapableCheck {
@@ -76,58 +76,79 @@ function WinUpgradeCapableCheck {
     $cpuStatus = CpuCheck
     $secureBootStatus = Confirm-SecureBootUEFI
 
+    # TPM Check
     if ( $tpmStatus -eq -1 ) {
+        Write-Host "Failed TPM requirement."
         Write-Host "An error has occurred running the TPM Check."
         exit -1
     } elseif ( $tpmStatus -gt 0 ) {
-        Write-Host "TPM not capable for Windows 11 upgrade, disabled in BIOS, or not present."
+        Write-Host "Failed TPM requirement."
+        Write-Host "Disabled in BIOS, or not present?"
         exit 1
-    } else { Write-Output "TPM check succeeded." }
+    } else { Write-Host "TPM requirement satisfied." }
 
+    # Memory Check
     if ( $memoryStatus -eq -1 ) {
+        Write-Host "Failed memory requirement."
         Write-Host "An error has occurred running the memory check."
         exit -1
     } elseif ( $memoryStatus -gt 0 ) {
+        Write-Host "Failed memory requirement."
         Write-Host "Not enough memory for Windows 11 upgrade."
         exit 1
-    } else { Write-Output "Memory check succeeded." }
+    } else { Write-Host "Memory requirement satisfied." }
 
+    # CPU Check
     if ( $cpuStatus -eq -1 ) {
+        Write-Host "Failed CPU requirement."
         Write-Host "An error has occurred running the CPU check."
         exit -1
-    } elseif ( $cpuStatus -gt 0 ) {
-        Write-Host "CPU not compatible for Windows 11 upgrade."
-    } else { Write-Output "CPU check succeeded." }
+    } elseif ( $cpuStatus -gt 0) {
+        Write-Host "Failed CPU clock speed requirement."
+    } else { Write-Host "CPU requirement satisfied." }
 
-    if ( $env:firmware_type -eq "UEFI" ) {
-        Write-Host "Confirmed firmware is UEFI."
-    } elseif ( $env:firmware_type -eq "Legacy" ) {
-        Write-Host "Computer is not on UEFI firmware mode."
+    # Firmware check
+    if ( $env:firmware_type -eq "Legacy" ) {
+        Write-Host "Failed firmware requirement."
+        Write-Host "Computer is not on UEFI firmware."
         exit 1
-    } else { Write-Output "Could not confirm UEFI firmware."}
+    } elseif ( $env:firmware_type -eq "UEFI" ) {
+        Write-Host "Confirmed firmware is UEFI."
+        Write-Host "Firmware requirement satisfied."
+    } else {
+        Write-Host "Failed firmware requirement."
+        Write-Host "Could not confirm UEFI firmware."
+        exit 1
+    }
 
     # Windows cannot check this if TPM is disabled in BIOS
-    if ( $secureBootStatus -eq $True ) {
-        Write-Host "Confirmed Secure Boot is enabled."
-    } elseif ( $secureBootStatus -eq $False ) {
+    if ( $secureBootStatus -eq $False ) {
+        Write-Host "Failed secure boot requirement."
         Write-Host "Secure boot is not enabled."
         exit 1
+    } elseif ( $secureBootStatus -eq $True ) {
+        Write-Host "Secure boot requirement satisfied."
     } else {
+        Write-Host "Failed secure boot requirement."
         Write-Host "Secure boot could not be checked, verify UEFI."
         exit -1
     }
 
     # Check disk last in the case it just needs cleanup
     if ( $osDiskStatus -eq -1 ) {
+        Write-Host "Failed OS disk requirement."
         Write-Host "An error has occurred running the OS disk check."
         exit -1
     } elseif ( $osDiskStatus -gt 0 ) {
+        Write-Host "Failed OS disk requirement."
         Write-Host "Not enough space on OS disk for Windows 11 upgrade."
         exit 1
-    } else { Write-Output "OS disk check succeeded." }
+    } else {
+        Write-Host "OS disk requirement satisfied."
+    }
 
     if ( $BreakAnyway -eq $True ) {
-        Write-Host "Script in test mode set to break, terminating with failure result."
+        Write-Host "Script in test mode set to break, terminating with Failed result."
         Write-Host $_
         exit 1
     }
