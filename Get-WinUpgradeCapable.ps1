@@ -233,7 +233,7 @@ function CpuCheck {
         Write-Host "Failed CPU Architecture requirement."
         Write-Host "Is installed Windows 64-bit?"
         return 3
-    } eliseif ( -Not $cpuFamilyResult.IsValid ) {
+    } elseif ( -Not $cpuFamilyResult.IsValid ) {
         Write-Host ($cpuDetailsLog)
     } else { return -1 }
 }
