@@ -213,12 +213,11 @@ function CpuCheck {
 
     $cpuDetails = @(Get-CimInstance -ClassName Win32_Processor)[0]
 
-    function cpuFamilyCheck {
+    function cpuLegacyCheck {
 
         $cpuFamilyResult = [CpuFamily]::Validate([String]$cpuDetails.Manufacturer, [uint16]$cpuDetails.Architecture)
 
         if ($null -eq $cpuDetails) {
-            Write-Host $cpuFamilyResult.Message
             return -1
         }
 
@@ -245,7 +244,7 @@ function CpuCheck {
 
         if ( -Not $cpuFamilyResult.IsValid ) {
             Write-Host $cpuDetails.Name "is not valid."
-            return -1
+            return 1
         } else {
             Write-Host $cpuDetails.Name "is supported."
             return 0
@@ -253,12 +252,15 @@ function CpuCheck {
 
     }
 
-    $cpu = (Get-CimInstance Win32_Processor)
-    $clockSpeed = ($cpu.MaxClockSpeed -gt $MinClockSpeedMHz)
-    $threadCount = ($cpu.ThreadCount -or $cpu.NumberOfCores -ge $MinLogicalCores)
-    $addressWidth = ($cpu.AddressWidth -eq $RequiredAddressWidth)
+    if ( cpuLegacyCheck ) {
+        Write-Host "Failed CPU Family requirement."
+        return 1
+    }
+
+    $clockSpeed = ($cpuDetails.MaxClockSpeed -gt $MinClockSpeedMHz)
+    $threadCount = ($cpuDetails.ThreadCount -or $cpuDetails.NumberOfCores -ge $MinLogicalCores)
+    $addressWidth = ($cpuDetails.AddressWidth -eq $RequiredAddressWidth)
     $compatible = $clockSpeed -and $threadCount -and $addressWidth
-    $family = cpuFamilyCheck
 
     if ( $compatible ) {
         return 0
@@ -272,9 +274,6 @@ function CpuCheck {
         Write-Host "Failed CPU Architecture requirement."
         Write-Host "Is installed Windows 64-bit?"
         return 3
-    } elseif ( -Not ( $family -eq 0 ) ) {
-        Write-Host "Failed CPU Family requirement."
-        return 4
     } else {
         return 0
     }
@@ -315,7 +314,7 @@ function WinUpgradeCapableCheck {
         Write-Host "Failed CPU requirement."
         Write-Host "An error has occurred running the CPU check."
         exit -1
-    } elseif ( $cpuStatus -gt 0) {
+    } elseif ( $cpuStatus -gt 0 ) {
         Write-Host "Failed CPU requirement."
     } else { Write-Host "CPU requirement satisfied." }
 
