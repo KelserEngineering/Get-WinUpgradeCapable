@@ -211,11 +211,11 @@ Add-Type -TypeDefinition $Source
 
 function CpuCheck {
 
+    $cpuDetails = @(Get-CimInstance -ClassName Win32_Processor)[0]
+
     function cpuFamilyCheck {
 
-        $cpuDetails = @(Get-CimInstance -ClassName Win32_Processor)[0]
         $cpuFamilyResult = [CpuFamily]::Validate([String]$cpuDetails.Manufacturer, [uint16]$cpuDetails.Architecture)
-        $cpuDetailsLog = "{`nAddressWidth=$($cpuDetails.AddressWidth); MaxClockSpeed=$($cpuDetails.MaxClockSpeed); NumberOfLogicalCores=$($cpuDetails.NumberOfLogicalProcessors); Manufacturer=$($cpuDetails.Manufacturer); Caption=$($cpuDetails.Caption); $($cpuFamilyResult.Message)}"
 
         if ($null -eq $cpuDetails) {
             Write-Host $cpuFamilyResult.Message
@@ -223,7 +223,7 @@ function CpuCheck {
         }
 
         function cpuExceptionCheck {
-            # i7-7820hq CPU
+
             $supportedDevices = @('surface studio 2', 'precision 5520')
             $systemInfo = @(Get-CimInstance -ClassName Win32_ComputerSystem)[0]
 
@@ -231,10 +231,10 @@ function CpuCheck {
                 if ($cpuDetails.Name -match 'i7-7820hq cpu @ 2.90ghz') {
                     $modelOrSKUCheckLog = $systemInfo.Model.Trim()
                     if ($supportedDevices -contains $modelOrSKUCheckLog) {
-                        Write-Host $systemInfo.Model.Trim() + " detected. Still supported."
+                        Write-Host $cpuDetails.Name "detected. Still supported."
                         return 0
                     } else {
-                        Write-Host $systemInfo.Model.Trim() + " not supported."
+                        Write-Host $cpuDetails.Name "is not supported."
                         return 1
                     }
                 }
@@ -244,10 +244,10 @@ function CpuCheck {
         cpuExceptionCheck
 
         if ( -Not $cpuFamilyResult.IsValid ) {
-            Write-Host "CPU details: $cpuDetailsLog"
-            return 1
+            Write-Host $cpuDetails.Name "is not valid."
+            return -1
         } else {
-            Write-Host "CPU details: $cpuDetailsLog"
+            Write-Host $cpuDetails.Name "is supported."
             return 0
         }
 
@@ -278,6 +278,7 @@ function CpuCheck {
     } else {
         return 0
     }
+    
 }
 
 function WinUpgradeCapableCheck {
