@@ -272,13 +272,13 @@ function CpuCheck {
         Write-Host "Failed CPU Architecture requirement."
         Write-Host "Is installed Windows 64-bit?"
         return 3
-    } elseif ( $family -gt 0 ) {
+    } elseif ( -Not ( $family -eq 0 ) ) {
         Write-Host "Failed CPU Family requirement."
         return 4
     } else {
         return 0
     }
-    
+
 }
 
 function WinUpgradeCapableCheck {
