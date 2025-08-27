@@ -207,21 +207,73 @@ using System.Runtime.InteropServices;
     }
 "@
 
-Add-Type -TypeDefinition $Source
+function ProcessorFamilyCheck {
+    Add-Type -TypeDefinition $Source
 
-function CpuCheck {
-    $cpu = (Get-CimInstance Win32_Processor)
+    $cpuResult = ""
     $cpuFamilyResult = [CpuFamily]::Validate([String]$cpuDetails.Manufacturer, [uint16]$cpuDetails.Architecture)
     $cpuDetailsLog = "{`nAddressWidth=$($cpuDetails.AddressWidth); MaxClockSpeed=$($cpuDetails.MaxClockSpeed); NumberOfLogicalCores=$($cpuDetails.NumberOfLogicalProcessors); Manufacturer=$($cpuDetails.Manufacturer); Caption=$($cpuDetails.Caption); $($cpuFamilyResult.Message)}"
 
+    try {
+        $cpuDetails = @(Get-CimInstance -ClassName Win32_Processor)[0]
+        Write-Output ($cpuDetails)
 
+        if ($null -eq $cpuDetails) {
+            $cpuResult = "Cpu details returns null"
+            return -1
+        } else {
+            $cpuDetailsLog = "{`nAddressWidth=$($cpuDetails.AddressWidth); MaxClockSpeed=$($cpuDetails.MaxClockSpeed); NumberOfLogicalCores=$($cpuDetails.NumberOfLogicalProcessors); Manufacturer=$($cpuDetails.Manufacturer); Caption=$($cpuDetails.Caption); $($cpuFamilyResult.Message)}"
+
+            if ( -Not $cpuFamilyResult.IsValid ) {
+                $cpuResult = "CPU details: $cpuDetailsLog"
+                return 1
+            } else {
+                return 0
+            }
+        }
+    }
+    catch {
+        Write-Host "CPU details: $cpuDetailsLog"
+        return 1
+    }
+
+    # i7-7820hq CPU
+    $supportedDevices = @('surface studio 2', 'precision 5520')
+    $systemInfo = @(Get-CimInstance -ClassName Win32_ComputerSystem)[0]
+
+    if ($null -ne $cpuDetails) {
+        if ($cpuDetails.Name -match 'i7-7820hq cpu @ 2.90ghz') {
+            $modelOrSKUCheckLog = $systemInfo.Model.Trim()
+            if ($supportedDevices -contains $modelOrSKUCheckLog) {
+                $cpuResult = $systemInfo.Model.Trim()
+                return 0
+            } else {
+                $cpuResult = $systemInfo.Model.Trim() + " not supported."
+                return 0
+            }
+        }
+    }
+
+    if ( -Not $cpuFamilyResult.IsValid ) {
+        $cpuResult = "CPU details: $cpuDetailsLog"
+        return 1
+    } else {
+        $cpuResult = "CPU details: $cpuDetailsLog"
+        return 0
+    }
+
+    Write-Host $cpuResult
+}
+
+function CpuCheck {
+
+    $cpu = (Get-CimInstance Win32_Processor)
     $clockSpeed = ($cpu.MaxClockSpeed -gt $MinClockSpeedMHz)
     $threadCount = ($cpu.ThreadCount -or $cpu.NumberOfCores -ge $MinLogicalCores)
     $addressWidth = ($cpu.AddressWidth -eq $RequiredAddressWidth)
-    $compatible = $clockSpeed -and $threadCount -and $addressWidth -and $cpuFamilyResult.IsValid
+    $compatible = $clockSpeed -and $threadCount -and $addressWidth
 
     if ( $compatible ) {
-        Write-Output $cpuFamilyResult
         return 0
     } elseif ( -Not $clockSpeed ) {
         Write-Host "Failed CPU clock speed requirement."
@@ -233,9 +285,12 @@ function CpuCheck {
         Write-Host "Failed CPU Architecture requirement."
         Write-Host "Is installed Windows 64-bit?"
         return 3
-    } elseif ( -Not $cpuFamilyResult.IsValid ) {
-        Write-Host ($cpuDetailsLog)
-    } else { return -1 }
+    } elseif ( -Not (ProcessorFamilyCheck) ) {
+        Write-Host "Could not satisfy processor family requirement."
+        return 4
+    } else { 
+        return -1
+    }
 }
 
 function WinUpgradeCapableCheck {
