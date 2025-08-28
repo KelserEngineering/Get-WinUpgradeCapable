@@ -211,6 +211,7 @@ Add-Type -TypeDefinition $Source
 
 function CpuCheck {
 
+    # Get-CimInstance is more performant than Get-WmiObject, invoke once and assign to variable for performance
     $cpuDetails = @(Get-CimInstance -ClassName Win32_Processor)[0]
 
     function cpuLegacyCheck {
@@ -316,6 +317,7 @@ function WinUpgradeCapableCheck {
         exit -1
     } elseif ( $cpuStatus -gt 0 ) {
         Write-Host "Failed CPU requirement."
+        exit 1
     } else { Write-Host "CPU requirement satisfied." }
 
     # Firmware check
